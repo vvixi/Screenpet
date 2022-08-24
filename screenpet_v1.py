@@ -249,7 +249,6 @@ while True:
 
 	elif is_eating:
 		eating()
-		candy.move(0, -200)
 
 	pygame.display.update()
 
