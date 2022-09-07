@@ -9,7 +9,8 @@ import random as rand
 # Skolding decreases the pets mood, feeding increases its mood.
 # Too much skolding will make the pet sad, cranky, then sleepy.
 # Too much candy and the pet will become hyper then aggitated.
-# The pet starts the game with a varying pastel color skin
+# Version 1.1 includes sound update and cleanup
+# extract assets to the root dir/assets/dec.wav inc.wav
 
 # basic setup
 width : int = 600
@@ -28,7 +29,10 @@ mood : float = 40.0
 modifier : int = 10
 is_eating : bool = False
 eat_time : int = 0
-candy = pygame.draw.circle(window, (0, 0, 200), [width/2, 400], 32, 0)
+sound = True
+
+increment_snd = pygame.mixer.Sound("assets/inc.wav")
+decrement_snd = pygame.mixer.Sound("assets/dec.wav")
 # clamp values of moods to range
 def clamp(n, smallest, largest):
 	return max(smallest, min(n, largest))
@@ -68,13 +72,11 @@ def round_eyes():
 		line_eyes()
 
 def line_eyes():
-	# was 250 for eye height
 	shake = rand.randrange(240, 250)
 	pygame.draw.line(window, (0, 0, 0),[100, shake], [200, shake], 15)
 	pygame.draw.line(window, (0, 0, 0),[400, shake], [500, shake], 15)
 
 def squint_eyes():
-	#pygame.draw.polygon(window, (255, 255, 255), [[150, 250], [150, 200], [200, 250]])
 	shake = [rand.randrange(100, 105), rand.randrange(200, 205), rand.randrange(400, 405), rand.randrange(500, 505)]
 	pygame.draw.line(window, (0, 0, 0),[shake[0], 245], [shake[1], 245], 15)
 	pygame.draw.line(window, (0, 0, 0),[shake[2], 245], [shake[3], 245], 15)
@@ -103,14 +105,12 @@ def laughing():
 
 def hungry():
 	mouth = pygame.draw.ellipse(window, (255, 0, 0), (220, 340, 200, 60))
-	#mouth = pygame.draw.circle(window, (255, 0, 0), [300, 380], 30, 0)
 	drool()
 	round_eyes()
 
 def crying():
 	cry = rand.randrange(250, 350)
 	lipquiver = rand.randrange(15, 25)
-	#mouth = pygame.draw.polygon(window, (255, 0, 0), [[rand.randrange(90,100), bottom], [rand.randrange(490,500), bottom], [300, cry ]])
 	mouth = pygame.draw.arc(window, (255, 0, 0), (100, 300, 400, 300), math.radians(0), math.radians(180), width=lipquiver)
 	line_eyes()
 	tears()
@@ -127,7 +127,6 @@ def sad():
 	corner1 = rand.randrange(30, 35)
 	corner2 = rand.randrange(150, 155)
 	mouth = pygame.draw.arc(window, (255, 0, 0), (100, 300, 400, 300), math.radians(corner1), math.radians(corner2), width=15)
-	#mouth = pygame.draw.polygon(window, (255, 0, 0), [[100, 380], [500, 380], [300, 300 ]])
 	if rand.randint(0,12)%6==0:
 		line_eyes()
 	else:
@@ -201,7 +200,6 @@ def aggitated():
 
 def eating():
 	global is_eating
-	# while eat_time < 10:
 	if rand.randint(1,12) % 2 == 0:
 		window.fill((my_color))
 		open()
@@ -211,11 +209,9 @@ def eating():
 		window.fill((my_color))
 		open2()
 		time.sleep(.4)
-	# for i in range(20):
 		
 	candy = pygame.draw.circle(window, (0, 0, 200), [width/2, 400], 32, 0)
 	candysheen = pygame.draw.circle(window, (0, 90, 255), [width/2, 395], 12, 0)
-
 
 	is_eating = False
 	if mood <= 90:
@@ -227,12 +223,16 @@ def eating():
 def mod_add():
 	global mood
 	mood = clamp(mood + modifier, 0.0, 100.0)
+	if sound:
+		pygame.mixer.Sound.play(increment_snd)
 	return
 
 def mod_sub():
 	global mood
 	if mood >= 10:
 		mood = clamp(mood - modifier, 0.0, 100.0)
+		if sound:
+			pygame.mixer.Sound.play(decrement_snd)
 	return
 
 # main game loop
@@ -240,7 +240,6 @@ while True:
 	print(mood)
 	clock.tick(fps)
 	mood = clamp(mood-(0.05), 0.0, 100.0)
-	# mood = clamp(mood-rand.uniform(-0.016, 0.012), 0.0, 100.0)
 	pygame.display.update()
 
 	if not is_eating:
