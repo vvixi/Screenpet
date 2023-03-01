@@ -13,11 +13,12 @@ import random as rand
 # extract assets to the root dir/assets/dec.wav inc.wav
 
 # basic setup
+scLineOn = True
 width : int = 600
 height : int  = 600
 pygame.init()
 window = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Virtual Buddy")
+pygame.display.set_caption("Screen Pet")
 colors = [[255,204,230], [230,242,255], [234,255,230], [255,242,230], [234,230,255], [251,230,255], [255, 204, 230]]
 rand.shuffle(colors)
 my_color = colors.pop()
@@ -29,16 +30,24 @@ mood : float = 40.0
 modifier : int = 10
 is_eating : bool = False
 eat_time : int = 0
-sound = True
+sound = False
 
-increment_snd = pygame.mixer.Sound("assets/inc.wav")
-decrement_snd = pygame.mixer.Sound("assets/dec.wav")
+# increment_snd = pygame.mixer.Sound("assets/inc.wav")
+# decrement_snd = pygame.mixer.Sound("assets/dec.wav")
 # clamp values of moods to range
 def clamp(n, smallest, largest):
 	return max(smallest, min(n, largest))
 
+def scan_lines():
+	if scLineOn:
+		scanOffs = 10
+		dist = rand.randrange(1,12)
+		for x in range(height//4):
+			pygame.draw.line(window, (200,200,200, dist), (0, x*scanOffs+dist), (width, x*scanOffs+dist)) 
+
 # ranges and corresponding moods
 def set_expression(mood):
+
 	if not is_eating:
 		if mood >= 90.0:
 			aggitated()
@@ -199,7 +208,9 @@ def aggitated():
 		time.sleep(.1)
 
 def eating():
+	
 	global is_eating
+
 	if rand.randint(1,12) % 2 == 0:
 		window.fill((my_color))
 		open()
@@ -209,7 +220,7 @@ def eating():
 		window.fill((my_color))
 		open2()
 		time.sleep(.4)
-		
+	scan_lines()
 	candy = pygame.draw.circle(window, (0, 0, 200), [width/2, 400], 32, 0)
 	candysheen = pygame.draw.circle(window, (0, 90, 255), [width/2, 395], 12, 0)
 
@@ -223,21 +234,21 @@ def eating():
 def mod_add():
 	global mood
 	mood = clamp(mood + modifier, 0.0, 100.0)
-	if sound:
-		pygame.mixer.Sound.play(increment_snd)
+	# if sound:
+		# pygame.mixer.Sound.play(increment_snd)
 	return
 
 def mod_sub():
 	global mood
 	if mood >= 10:
 		mood = clamp(mood - modifier, 0.0, 100.0)
-		if sound:
-			pygame.mixer.Sound.play(decrement_snd)
+		# if sound:
+			# pygame.mixer.Sound.play(decrement_snd)
 	return
 
 # main game loop
 while True:
-	print(mood)
+
 	clock.tick(fps)
 	mood = clamp(mood-(0.05), 0.0, 100.0)
 	pygame.display.update()
@@ -245,17 +256,21 @@ while True:
 	if not is_eating:
 		window.fill((my_color))
 		set_expression(mood)
+		scan_lines()
 
 	elif is_eating:
 		eating()
-		candy.move(0, -200)
 
+		# candy.move(0, -200)
+	
 	pygame.display.update()
 
 	for event in pygame.event.get():
 		if event.type == KEYDOWN:
 			if event.key == K_LEFT:
 				mod_sub()
-			if event.key == K_RIGHT:
+			elif event.key == K_RIGHT:
 				eating()
 				is_eating = True
+			elif event.key == K_ESCAPE:
+				pygame.quit()
